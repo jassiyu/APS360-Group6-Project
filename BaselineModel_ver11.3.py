@@ -116,6 +116,57 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
               f"Train Loss: {avg_train_loss:.4f}, Train Acc: {train_accuracy:.2f}%, "
               f"Val Loss: {avg_val_loss:.4f}, Val Acc: {val_accuracy:.2f}%")
     return train_losses, val_losses  # Return losses for plotting
+
+
+def evaluate(model, test_loader):
+    # Lists to store misclassified images, labels, and predictions
+    misclassified_images = []
+    misclassified_labels = []
+    misclassified_predictions = []
+
+    model.eval()  # Set model to evaluation mode
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for imgs, labels in test_loader:
+            #############################################
+            #To Enable GPU Usage
+            if use_cuda and torch.cuda.is_available():
+              imgs = imgs.cuda()
+              labels = labels.cuda()
+            #############################################
+            out = model(imgs)            
+            _, predicted = torch.max(outputs, 1)
+
+            # Track misclassifications
+            misclassified_mask = predicted != labels
+            misclassified_images.extend(imgs[misclassified_mask].cpu())
+            misclassified_labels.extend(labels[misclassified_mask].cpu())
+            misclassified_predictions.extend(predicted[misclassified_mask].cpu())
+
+            # Update correct predictions count
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    accuracy = 100 * correct / total
+    print(f'Accuracy on test dataset: {accuracy:.2f}%')
+
+    # Show a few misclassified images
+    show_misclassified_images(misclassified_images, misclassified_labels, misclassified_predictions)
+
+def show_misclassified_images(images, true_labels, predicted_labels, num_images=10):
+    plt.figure(figsize=(10, 10))
+    for i in range(min(num_images, len(images))):
+        plt.subplot(5, 5, i + 1)
+        img = images[i].permute(1, 2, 0)
+        img = img * 0.5 + 0.5  # Unnormalize if normalized with (0.5, 0.5, 0.5)
+        plt.imshow(img)
+        plt.title(f'True: {true_labels[i]}, Pred: {predicted_labels[i]}')
+        plt.axis('off')
+    plt.show()
+
+
   
 if __name__ == '__main__':
   set_seed(1000)
