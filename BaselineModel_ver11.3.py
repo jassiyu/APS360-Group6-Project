@@ -46,6 +46,10 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    # Lists to store loss for each epoch
+    train_losses = []
+    val_losses = []
+    
     # Training loop
     for epoch in range(num_epochs):
 
@@ -77,6 +81,7 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
         # Average training loss and accuracy
         avg_train_loss = train_loss / len(train_loader.dataset)
         train_accuracy = 100 * correct_train / len(train_loader.dataset)
+        train_losses.append(avg_train_loss)  # Save train loss for this epoch
 
         # --- Validation Phase ---
         model.eval()
@@ -104,12 +109,13 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
         # Average validation loss and accuracy
         avg_val_loss = val_loss / len(val_loader.dataset)
         val_accuracy = 100 * correct_val / len(val_loader.dataset)
+        val_losses.append(avg_val_loss)  # Save validation loss for this epoch
 
         # Print epoch summary
         print(f"Epoch [{epoch+1}/{num_epochs}], "
               f"Train Loss: {avg_train_loss:.4f}, Train Acc: {train_accuracy:.2f}%, "
               f"Val Loss: {avg_val_loss:.4f}, Val Acc: {val_accuracy:.2f}%")
-
+    return train_losses, val_losses  # Return losses for plotting
   
 if __name__ == '__main__':
   set_seed(1000)
@@ -157,4 +163,15 @@ if __name__ == '__main__':
     print('CUDA is available!  Training on GPU ...')
   else:
     print('CUDA is not available.  Training on CPU ...')
-  train(model, train_loader, val_loader,num_epochs=40,learning_rate=0.001)
+      
+  train_losses, val_losses = train(model, train_loader, val_loader,num_epochs=40,learning_rate=0.001)
+
+  # Plot the loss curves
+  plt.figure(figsize=(10, 5))
+  plt.plot(train_losses, label='Training Loss')
+  plt.plot(val_losses, label='Validation Loss')
+  plt.xlabel('Epoch')
+  plt.ylabel('Loss')
+  plt.title('Training and Validation Loss')
+  plt.legend()
+  plt.show()
