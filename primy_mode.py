@@ -17,6 +17,7 @@ from google.colab import drive
 drive.mount('/content/drive')
 
 from visualize_methods import *
+from load_train import *
 # !mkdir -p /content/drive/MyDrive/APS360/Project/Test
 # !unzip /content/drive/MyDrive/APS360/Project/Test.zip -d /content/drive/MyDrive/APS360/Project/Test
 # !ls /content/drive/MyDrive/APS360/Project/Test
