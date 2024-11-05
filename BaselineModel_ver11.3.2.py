@@ -103,6 +103,10 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
     # Lists to store loss for each epoch
     train_losses = []
     val_losses = []
+
+    # Lists to store accuracy for each epoch
+    train_acc = []
+    val_acc = []
     
     # Training loop
     for epoch in range(num_epochs):
@@ -136,6 +140,7 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
         avg_train_loss = train_loss / len(train_loader.dataset)
         train_accuracy = 100 * correct_train / len(train_loader.dataset)
         train_losses.append(avg_train_loss)  # Save train loss for this epoch
+        train_acc.append(train_accuracy)  # Save train accuracy for this epoch
 
         # --- Validation Phase ---
         torch.save(model.state_dict(), data_dir +"model_lr{0}_epoch{1}.pth".format(learning_rate,epoch))
@@ -164,11 +169,13 @@ def train(model, train_loader, val_loader, num_epochs=10, learning_rate=0.001):
         avg_val_loss = val_loss / len(val_loader.dataset)
         val_accuracy = 100 * correct_val / len(val_loader.dataset)
         val_losses.append(avg_val_loss)  # Save validation loss for this epoch
+        val_accuracy.append(val_accuracy)  # Save validation accuracy for this epoch
+
         # Print epoch summary
         print(f"Epoch [{epoch+1}/{num_epochs}], "
               f"Train Loss: {avg_train_loss:.4f}, Train Acc: {train_accuracy:.2f}%, "
               f"Val Loss: {avg_val_loss:.4f}, Val Acc: {val_accuracy:.2f}%")
-    return train_losses, val_losses  # Return losses for plotting
+    return train_losses, val_losses, train_acc, val_acc  # Return lists for plotting
 
 
 def evaluate(model, test_loader):
@@ -297,17 +304,31 @@ if __name__ == '__main__':
   else:
     print('CUDA is not available.  Training on CPU ...')
 
-  train_losses, val_losses = train(Newmodel, train_loader, val_loader,num_epochs=40,learning_rate=0.001)
+  train_losses, val_losses, train_acc, val_acc = train(Newmodel, train_loader, val_loader,num_epochs=40,learning_rate=0.001)
 
   print('Training completed!')
-  # Plot the loss curves
-  plt.figure(figsize=(10, 5))
-  plt.plot(train_losses, label='Training Loss')
-  plt.plot(val_losses, label='Validation Loss')
-  plt.xlabel('Epoch')
-  plt.ylabel('Loss')
-  plt.title('Training and Validation Loss')
-  plt.legend()
+
+  # Create subplots for side-by-side plots
+  fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+  
+  # Plot loss on the first subplot
+  ax1.plot(train_losses, label='Training Loss')
+  ax1.plot(val_losses, label='Validation Loss')
+  ax1.set_xlabel('Epoch')
+  ax1.set_ylabel('Loss')
+  ax1.set_title('Training and Validation Loss')
+  ax1.legend()
+  
+  # Plot accuracy on the second subplot
+  ax2.plot(train_acc, label='Training Accuracy')
+  ax2.plot(val_acc, label='Validation Accuracy')
+  ax2.set_xlabel('Epoch')
+  ax2.set_ylabel('Accuracy')
+  ax2.set_title('Training and Validation Accuracy')
+  ax2.legend()
+
+  # Show the plots
+  plt.tight_layout()
   plt.show()
   """
 
